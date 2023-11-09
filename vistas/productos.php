@@ -716,7 +716,7 @@
                    $("#iptUtilidadReg").val("");
                    $("#iptStockReg").val("");
                    $("#iptMinimoStockReg").val("");
-
+ 
                  } else {
                    Toast.fire({
                      icon: 'error',
