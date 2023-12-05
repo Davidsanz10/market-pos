@@ -18,7 +18,15 @@ class ProductoControlador {
         return $registroProducto;
     }
     static public function ctrActualizarStock($table,$data,$id,$nameId){
-        $respuesta = ProductosModelo::mdlActualizarStock($table,$data,$id,$nameId);
+        $respuesta = ProductosModelo::mdlActualizarInformacion($table,$data,$id,$nameId);
+        return $respuesta;
+    }
+    static public function ctrActualizarProducto($table,$data,$id,$nameId){
+        $respuesta = ProductosModelo::mdlActualizarInformacion($table,$data,$id,$nameId);
+        return $respuesta;
+    }
+    static public function ctrEliminarProducto($table,$id,$nameId){
+        $respuesta = ProductosModelo::mdlEliminarInformacion($table,$id,$nameId);
         return $respuesta;
     }
 }

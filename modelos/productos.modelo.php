@@ -202,7 +202,7 @@ class ProductosModelo
         $stmt = null;
     }
 
-    static public function mdlActualizarStock($table,$data,$id,$nameId){
+    static public function mdlActualizarInformacion($table,$data,$id,$nameId){
         $set = "";
 
         foreach ($data as $key => $value) {
@@ -232,5 +232,18 @@ class ProductosModelo
             return Conexion::conectar()->errorInfo();
         
         }
+    }
+
+    static public function mdlEliminarInformacion($table,$id,$nameId)
+    {
+
+        $stmt = Conexion::conectar()->prepare("DELETE FROM $table WHERE $nameId =:$nameId");
+        $stmt->bindParam(":".$nameId, $id, PDO::PARAM_STR);
+        if($stmt->execute()){
+            return "ok";
+        } else{
+            return Conexion::conectar()->errorInfo();
+        }
+
     }
 }

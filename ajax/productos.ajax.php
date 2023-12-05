@@ -45,10 +45,26 @@ class ajaxProductos
     }
     public function ajaxActualizarStock($data)
     {
-        $table ="productos";
-        $id= $_POST["codigo_producto"];
+        $table = "productos";
+        $id = $_POST["codigo_producto"];
         $nameId = "codigo_producto";
-        $respuesta = ProductoControlador::ctrActualizarStock($table,$data,$id,$nameId);
+        $respuesta = ProductoControlador::ctrActualizarStock($table, $data, $id, $nameId);
+        echo json_encode($respuesta);
+    }
+    public function ajaxActualizarProducto($data)
+    {
+        $table = "productos";
+        $id = $_POST["codigo_producto"];
+        $nameId = "codigo_producto";
+        $respuesta = ProductoControlador::ctrActualizarProducto($table, $data, $id, $nameId);
+        echo json_encode($respuesta);
+    }
+    public function ajaxEliminarProducto()
+    {
+        $table = "productos";
+        $id = $_POST["codigo_producto"];
+        $nameId = "codigo_producto";
+        $respuesta = ProductoControlador::ctrEliminarProducto($table, $id, $nameId);
         echo json_encode($respuesta);
     }
 }
@@ -75,6 +91,22 @@ if (isset($_POST['accion']) && $_POST['accion'] == 1) { // parametro para listar
         "stock_producto" => $_POST["nuevoStock"],
     );
     $actualizarStock->ajaxActualizarStock($data);
+} else if (isset($_POST['accion']) && $_POST['accion'] == 4) {
+    $actualizarProducto = new ajaxProductos();
+    $data = array(
+        "id_categoria_producto" => $_POST["id_categoria_producto"],
+        "descripcion_producto" => $_POST["descripcion_producto"],
+        "precio_compra_producto" => $_POST["precio_compra_producto"],
+        "precio_venta_producto" => $_POST["precio_venta_producto"],
+        "utilidad" => $_POST["utilidad"],
+        "stock_producto" => $_POST["stock_producto"],
+        "minimo_stock_producto" => $_POST["minimo_stock_producto"],
+    );
+    $actualizarProducto->ajaxActualizarProducto($data);
+} else if (isset($_POST['accion']) && $_POST['accion'] == 5) {
+    $eliminarProducto = new ajaxProductos();
+    $eliminarProducto -> ajaxEliminarProducto();
+
 } else if (isset($_FILES)) {
     $archivo_producto = new ajaxProductos();
     $archivo_producto->fileProductos = $_FILES['fileProductos'];
