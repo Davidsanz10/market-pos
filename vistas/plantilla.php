@@ -31,6 +31,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
   <!-- Sweet-alert  -->
   <link rel="stylesheet" href="vistas/assets/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+    <!-- Jquery CSS UI-->
+    <link rel="stylesheet" href="vistas/assets/plugins/jquery-ui/css/jquery-ui.css">
    
   <!-- REQUIRED SCRIPTS -->
   <!-- jQuery -->
@@ -60,6 +62,8 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <!-- Sweet-alert  -->
   <script src="vistas/assets/plugins/sweetalert2/sweetalert2.min.js"></script>
   <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script> -->
+  <!-- jquery UI -->
+  <script src="vistas/assets/plugins/jquery-ui/js/jquery-ui.js"></script>
 </head>
 
 <body class="hold-transition sidebar-mini">

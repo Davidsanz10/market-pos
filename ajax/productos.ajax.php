@@ -67,6 +67,19 @@ class ajaxProductos
         $respuesta = ProductoControlador::ctrEliminarProducto($table, $id, $nameId);
         echo json_encode($respuesta);
     }
+    public function ajaxListarNombreProductos()
+    {
+        $NombreProductos = ProductoControlador::ctrListarNombreProdutos();
+        echo json_encode($NombreProductos);
+    }
+    /*=====================
+        Buscar producto por Codigo de Barras
+    ===========================*/
+    public function ajaxGetDatosProducto()
+    {
+        $producto = ProductoControlador::ctrGetDatosProducto($this->codigo_producto);
+        echo json_encode($producto);
+    }
 }
 
 if (isset($_POST['accion']) && $_POST['accion'] == 1) { // parametro para listar productos
@@ -91,7 +104,7 @@ if (isset($_POST['accion']) && $_POST['accion'] == 1) { // parametro para listar
         "stock_producto" => $_POST["nuevoStock"],
     );
     $actualizarStock->ajaxActualizarStock($data);
-} else if (isset($_POST['accion']) && $_POST['accion'] == 4) {
+} else if (isset($_POST['accion']) && $_POST['accion'] == 4) { //ACCION PARA ACTUALIZAR UN PRODUCTO
     $actualizarProducto = new ajaxProductos();
     $data = array(
         "id_categoria_producto" => $_POST["id_categoria_producto"],
@@ -103,10 +116,20 @@ if (isset($_POST['accion']) && $_POST['accion'] == 1) { // parametro para listar
         "minimo_stock_producto" => $_POST["minimo_stock_producto"],
     );
     $actualizarProducto->ajaxActualizarProducto($data);
-} else if (isset($_POST['accion']) && $_POST['accion'] == 5) {
+} else if (isset($_POST['accion']) && $_POST['accion'] == 5) { //ACCION PARA ELIMINAR UN PRODUCTO
     $eliminarProducto = new ajaxProductos();
-    $eliminarProducto -> ajaxEliminarProducto();
+    $eliminarProducto->ajaxEliminarProducto();
+} else if (isset($_POST['accion']) && $_POST['accion'] == 6) { //OBTENER LISTADO DE PRODUCTO para el autocomplete
+    $nombreProductos = new ajaxProductos();
+    $nombreProductos->ajaxListarNombreProductos();
+}else if(isset($_POST["accion"]) && $_POST["accion"] == 7){ // OBTENER DATOS DE UN PRODUCTO POR SU CODIGO
 
+    $listaProducto = new AjaxProductos();
+
+    $listaProducto -> codigo_producto = $_POST["codigo_producto"];
+    
+    $listaProducto -> ajaxGetDatosProducto();
+	
 } else if (isset($_FILES)) {
     $archivo_producto = new ajaxProductos();
     $archivo_producto->fileProductos = $_FILES['fileProductos'];
