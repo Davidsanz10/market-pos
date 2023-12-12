@@ -275,7 +275,7 @@ class ProductosModelo
                                                         '' as acciones,
                                                         c.aplica_peso
                                                 FROM productos p inner join categorias c on p.id_categoria_producto = c.id_categoria
-                                            WHERE codigo_producto = :codigoProducto
+                                            WHERE p.codigo_producto = :codigoProducto
                                                 AND p.stock_producto > 0");
 
         $stmt->bindParam(":codigoProducto", $codigoProducto, PDO::PARAM_INT);
@@ -284,4 +284,19 @@ class ProductosModelo
 
         return $stmt->fetch(PDO::FETCH_OBJ);
     }
+    static public function mdlVerificarStockProducto($codigoProducto,$cantidad_a_comprar)
+    {
+
+        $stmt = Conexion::conectar()->prepare("SELECT   COUNT(*) as existe
+                                                FROM productos p 
+                                            WHERE p.codigo_producto = :codigoProducto
+                                                AND p.stock_producto > :cantidad_a_comprar");
+
+        $stmt->bindParam(":codigoProducto", $codigoProducto, PDO::PARAM_STR);
+        $stmt->bindParam(":cantidad_a_comprar", $cantidad_a_comprar, PDO::PARAM_STR);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_OBJ);
+    }
+
 }

@@ -72,4 +72,11 @@ class ProductoControlador
 
         return $producto;
     }
+    static public function ctrVerificaStockProducto($codigo_producto,$cantidad_a_comprar)
+    {
+
+        $respuesta = ProductosModelo::mdlVerificarStockProducto($codigo_producto,$cantidad_a_comprar);
+
+        return $respuesta;
+    }
 }

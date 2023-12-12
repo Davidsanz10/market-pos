@@ -249,7 +249,39 @@
         /* ======================================================================================
         INICIALIZAR LA TABLA DE VENTAS
         ======================================================================================*/
+
         table = $('#lstProductosVenta').DataTable({
+            "columns": [{
+                    "data": "id"
+                },
+                {
+                    "data": "codigo_producto"
+                },
+                {
+                    "data": "id_categoria"
+                },
+                {
+                    "data": "nombre_categoria"
+                },
+                {
+                    "data": "descripcion_producto"
+                },
+                {
+                    "data": "cantidad"
+                },
+                {
+                    "data": "precio_venta_producto"
+                },
+                {
+                    "data": "total"
+                },
+                {
+                    "data": "acciones"
+                },
+                {
+                    "data": "aplica_peso"
+                },
+            ],
             columnDefs: [{
                     targets: 0,
                     visible: false
@@ -316,7 +348,130 @@
 
             }
         });
+        /* ======================================================================================
+		EVENTO QUE REGISTRA EL PRODUCTO EN EL LISTADO CUANDO SE INGRESA CODIGO DE BARRAS
+		======================================================================================*/
+        $("#iptCodigoVenta").change(function() {
+            CargarProductos();
+        });
+        /* ======================================================================================
+		EVENTO PARA ELIMINAR UN PRODUCTO DEL LISTADO
+		======================================================================================*/
+        $('#lstProductosVenta tbody').on('click', '.btnEliminarproducto', function() {
+            table.row($(this).parents('tr')).remove().draw();
+            recalcularTotales();
+        });
+        /* ======================================================================================
+        EVENTO PARA AUMENTAR LA CANTIDAD DE UN PRODUCTO DEL LISTADO
+        ====================================================================================== */
+        $('#lstProductosVenta tbody').on('click', '.btnAumentarCantidad', function() {
+
+            var data = table.row($(this).parents('tr')).data(); //Recuperar los datos de la fila
+
+            var idx = table.row($(this).parents('tr')).index(); // Recuperar el Indice de la Fila
+
+            var codigo_producto = data['codigo_producto'];
+            var cantidad = data['cantidad'];
+            $.ajax({
+                async: false,
+                url: "ajax/productos.ajax.php",
+                method: "POST",
+                data: {
+                    'accion': 8,
+                    'codigo_producto': codigo_producto,
+                    'cantidad_a_comprar': cantidad
+                },
+
+                dataType: 'json',
+                success: function(respuesta) {
+
+                    if (parseInt(respuesta['existe']) == 0) {
+
+                        Toast.fire({
+                            icon: 'error',
+                            title: ' El producto ' + data['descripcion_producto'] + ' ya no tiene stock'
+                        })
+
+                        $("#iptCodigoVenta").val("");
+                        $("#iptCodigoVenta").focus();
+
+                    } else {
+
+                        cantidad = parseInt(data['cantidad']) + 1;
+
+                        table.cell(idx, 5).data(cantidad + ' Und(s)').draw();
+
+                        NuevoPrecio = (parseInt(data['cantidad']) * data['precio_venta_producto'].replace("S./ ", "")).toFixed(2);
+                        NuevoPrecio = "S./ " + NuevoPrecio;
+
+                        table.cell(idx, 7).data(NuevoPrecio).draw();
+
+                        recalcularTotales();
+                    }
+                }
+            });
+
+        });
+
+        /* ======================================================================================
+        EVENTO PARA DESMINUIR LA CANTIDAD DE UN PRODUCTO DEL LISTADO
+        ======================================================================================*/
+        $('#lstProductosVenta tbody').on('click', '.btnDisminuirCantidad', function() {
+
+            var data = table.row($(this).parents('tr')).data();
+
+            if (data['cantidad'].replace('Und(s)', '') >= 2) {
+
+                cantidad = parseInt(data['cantidad'].replace('Und(s)', '')) - 1;
+
+                var idx = table.row($(this).parents('tr')).index();
+
+                table.cell(idx, 5).data(cantidad + ' Und(s)').draw();
+
+                NuevoPrecio = (parseInt(data['cantidad']) * data['precio_venta_producto'].replace("S./ ", "")).toFixed(2);
+                NuevoPrecio = "S./ " + NuevoPrecio;
+
+                table.cell(idx, 7).data(NuevoPrecio).draw();
+
+            }
+
+            recalcularTotales();
+        });
+
+
     })
+    /*===================================================================*/
+    //FUNCION PARA Recalcular los totaale de ventasa
+    /*===================================================================*/
+    function recalcularTotales() {
+        var TotalVenta = 0.00;
+        table.rows().eq(0).each(function(index) {
+            var row = table.row(index);
+
+            var data = row.data();
+            TotalVenta = parseFloat(TotalVenta) + parseFloat(data["total"].replace("S./ ", ""));
+
+        });
+        // TotalVenta = parseFloat(TotalVenta).toFixed(2);
+
+        $("#totalVenta").html("");
+        $("#totalVenta").html(TotalVenta.toFixed(2));
+
+        $("#iptCodigoVenta").val("");
+
+        var igv = parseFloat(TotalVenta) * 0.18;
+        var subtotal = parseFloat(TotalVenta) - parseFloat(igv);
+
+        $("#boleta_subtotal").html(parseFloat(subtotal).toFixed(2));
+        $("#boleta_igv").html(parseFloat(igv).toFixed(2));
+        $("#boleta_total").html(parseFloat(TotalVenta).toFixed(2));
+
+        $("#totalVentaRegistrar").html(TotalVenta.toFixed(2));
+        $("#boleta_total").html(TotalVenta.toFixed(2));
+
+        $("#iptCodigoVenta").val("");
+        $("#iptCodigoVenta").focus();
+    }
 
     /*===================================================================*/
     //FUNCION PARA CARGAR PRODUCTOS EN EL DATATABLE
@@ -330,7 +485,7 @@
             var codigo_producto = $("#iptCodigoVenta").val();
         }
 
-         console.log("🚀 ~ file: ventas.php ~ line 335 ~ CargarProductos ~ codigo_producto", codigo_producto)
+        // console.log("🚀 ~ file: ventas.php ~ line 335 ~ CargarProductos ~ codigo_producto", codigo_producto)
 
         $.ajax({
             url: "ajax/productos.ajax.php",
@@ -347,87 +502,61 @@
                 /*===================================================================*/
                 if (respuesta) {
 
-                    var TotalVenta = 0.00;
 
                     if (respuesta['aplica_peso'] == 1) {
 
-                        table.row.add([
-                            itemProducto,
-                            respuesta['codigo_producto'],
-                            respuesta['id_categoria'],
-                            respuesta['nombre_categoria'],
-                            respuesta['descripcion_producto'],
-                            respuesta['cantidad'] + ' Kg(s)',
-                            respuesta['precio_venta_producto'],
-                            respuesta['total'],
-                            "<center>" +
-                            "<span class='btnIngresarPeso text-success px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Aumentar Stock'> " +
-                            "<i class='fas fa-balance-scale fs-5'></i> " +
-                            "</span> " +
-                            "<span class='btnEliminarproducto text-danger px-1'style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Eliminar producto'> " +
-                            "<i class='fas fa-trash fs-5'> </i> " +
-                            "</span>" +
-                            "</center>",
-                            respuesta['aplica_peso']
-                        ]).draw();
+                        table.row.add({
+                            'id': itemProducto,
+                            'codigo_producto': respuesta['codigo_producto'],
+                            'id_categoria': respuesta['id_categoria'],
+                            'nombre_categoria': respuesta['nombre_categoria'],
+                            'descripcion_producto': respuesta['descripcion_producto'],
+                            'cantidad': respuesta['cantidad'] + ' Kg(s)',
+                            'precio_venta_producto': respuesta['precio_venta_producto'],
+                            'total': respuesta['total'],
+                            'acciones': "<center>" +
+                                "<span class='btnIngresarPeso text-success px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Aumentar Stock'> " +
+                                "<i class='fas fa-balance-scale fs-5'></i> " +
+                                "</span> " +
+                                "<span class='btnEliminarproducto text-danger px-1'style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Eliminar producto'> " +
+                                "<i class='fas fa-trash fs-5'> </i> " +
+                                "</span>" +
+                                "</center>",
+                            'aplica_peso': respuesta['aplica_peso']
+                        }).draw();
 
                         itemProducto = itemProducto + 1;
 
                     } else {
 
-                        table.row.add([
-                            itemProducto,
-                            respuesta['codigo_producto'],
-                            respuesta['id_categoria'],
-                            respuesta['nombre_categoria'],
-                            respuesta['descripcion_producto'],
-                            respuesta['cantidad'] + ' Und(s)',
-                            respuesta['precio_venta_producto'],
-                            respuesta['total'],
-                            "<center>" +
-                            "<span class='btnAumentarCantidad text-success px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Aumentar Stock'> " +
-                            "<i class='fas fa-cart-plus fs-5'></i> " +
-                            "</span> " +
-                            "<span class='btnDisminuirCantidad text-warning px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Disminuir Stock'> " +
-                            "<i class='fas fa-cart-arrow-down fs-5'></i> " +
-                            "</span> " +
-                            "<span class='btnEliminarproducto text-danger px-1'style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Eliminar producto'> " +
-                            "<i class='fas fa-trash fs-5'> </i> " +
-                            "</span>" +
-                            "</center>",
-                            respuesta['aplica_peso']
-                        ]).draw();
+                        table.row.add({
+                            'id': itemProducto,
+                            'codigo_producto': respuesta['codigo_producto'],
+                            'id_categoria': respuesta['id_categoria'],
+                            'nombre_categoria': respuesta['nombre_categoria'],
+                            'descripcion_producto': respuesta['descripcion_producto'],
+                            'cantidad': respuesta['cantidad'] + ' Und(s)',
+                            'precio_venta_producto': respuesta['precio_venta_producto'],
+                            'total': respuesta['total'],
+                            'acciones': "<center>" +
+                                "<span class='btnAumentarCantidad text-success px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Aumentar Stock'> " +
+                                "<i class='fas fa-cart-plus fs-5'></i> " +
+                                "</span> " +
+                                "<span class='btnDisminuirCantidad text-warning px-1' style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Disminuir Stock'> " +
+                                "<i class='fas fa-cart-arrow-down fs-5'></i> " +
+                                "</span> " +
+                                "<span class='btnEliminarproducto text-danger px-1'style='cursor:pointer;' data-bs-toggle='tooltip' data-bs-placement='top' title='Eliminar producto'> " +
+                                "<i class='fas fa-trash fs-5'> </i> " +
+                                "</span>" +
+                                "</center>",
+                            'aplica_peso': respuesta['aplica_peso']
+                        }).draw();
 
                         itemProducto = itemProducto + 1;
 
                     }
-
-
                     //  Recalculamos el total de la venta
-                    table.rows().eq(0).each(function(index) {
-                        var row = table.row(index);
-
-                        var data = row.data();
-                        TotalVenta = parseFloat(TotalVenta) + parseFloat(data[7].replace("S./ ", ""));
-
-                    });
-
-                    // TotalVenta = parseFloat(TotalVenta).toFixed(2);
-
-                    $("#totalVenta").html("");
-                    $("#totalVenta").html(TotalVenta.toFixed(2));
-
-                    $("#iptCodigoVenta").val("");
-
-                    var igv = parseFloat(TotalVenta) * 0.18;
-                    var subtotal = parseFloat(TotalVenta) - parseFloat(igv);
-
-                    $("#boleta_subtotal").html(parseFloat(subtotal).toFixed(2));
-                    $("#boleta_igv").html(parseFloat(igv).toFixed(2));
-                    $("#boleta_total").html(parseFloat(TotalVenta).toFixed(2));
-
-                    $("#totalVentaRegistrar").html(TotalVenta.toFixed(2));
-                    $("#boleta_total").html(TotalVenta.toFixed(2));
+                    recalcularTotales();
 
                     /*===================================================================*/
                     //SI LA RESPUESTA ES FALSO, NO TRAE ALGUN DATO
