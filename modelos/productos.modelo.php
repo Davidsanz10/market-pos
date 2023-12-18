@@ -273,7 +273,9 @@ class ProductosModelo
                                                         CONCAT('S./ ',CONVERT(ROUND(precio_venta_producto,2), CHAR)) as precio_venta_producto,
                                                         CONCAT('S./ ',CONVERT(ROUND(1*precio_venta_producto,2), CHAR)) as total,
                                                         '' as acciones,
-                                                        c.aplica_peso
+                                                        c.aplica_peso,
+                                                        p.precio_mayor_producto,
+                                                        p.precio_oferta_producto
                                                 FROM productos p inner join categorias c on p.id_categoria_producto = c.id_categoria
                                             WHERE p.codigo_producto = :codigoProducto
                                                 AND p.stock_producto > 0");
